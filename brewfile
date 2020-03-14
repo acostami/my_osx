@@ -1,0 +1,56 @@
+# Taps
+tap "homebrew/cask"
+tap "homebrew/bundle"
+tap "homebrew/core"
+
+# Binaries
+brew "awscli"
+brew "curl"
+brew "mas" # Mac App Store Manager
+brew "tree"
+brew "openssl"
+brew "asdf"
+brew "git"
+brew "mysql"
+brew "postgresql"
+brew "sqlite3"
+brew "vim"
+brew "coreutils"
+brew "gpg"
+brew "dockutil"
+brew "yarn"
+brew "bower"
+
+# Browsers
+cask "google-chrome"
+cask "firefox"
+
+# Editor
+cask "visual-studio-code"
+
+# Design
+cask "gimp"
+
+# Utilities
+cask "appcleaner"
+cask "caffeine"
+cask "recordit"
+cask "spectacle"
+cask "iterm2"
+cask "docker"
+cask "google-backup-and-sync"
+
+# Others
+cask "skype"
+cask "vlc"
+cask "slack"
+cask "microsoft-teams"
+cask "libreoffice"
+cask "spotify"
+cask "harvest"
+cask "github"
+cask "postman"
+cask "stremio"
+cask "soapui"
+cask "postico"
+cask "notion"

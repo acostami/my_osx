@@ -1,0 +1,504 @@
+#!/usr/bin/env bash
+#
+# bootstrap installs things.
+
+cd "$(dirname "$0")/.."
+MY_OSX_ROOT=$(pwd -P)
+
+set -e
+
+echo ''
+
+info () {
+  printf "\r  [ \033[00;34m..\033[0m ] $1\n"
+}
+
+user () {
+  printf "\r  [ \033[0;33m??\033[0m ] $1\n"
+}
+
+success () {
+  printf "\r\033[2K  [ \033[00;32mOK\033[0m ] $1\n"
+}
+
+fail () {
+  printf "\r\033[2K  [\033[0;31mFAIL\033[0m] $1\n"
+  echo ''
+  exit
+}
+
+setup_macos () {
+  info 'Setting up macos'
+
+  echo "› sudo softwareupdate -i -a"
+  sudo softwareupdate -i -a
+
+  echo "› sudo softwareupdate --schedule on"
+  sudo softwareupdate --schedule on
+
+  echo "Type the username for this computer (ex: acostami):"
+  read SYSTEM_NAME
+
+  echo "› sudo sudo scutil --set ComputerName $SYSTEM_NAME"
+  sudo scutil --set ComputerName $SYSTEM_NAME
+  echo "› sudo scutil --set HostName $SYSTEM_NAME"
+  sudo scutil --set HostName $SYSTEM_NAME
+  echo "› sudo scutil --set LocalHostName $SYSTEM_NAME"
+  sudo scutil --set LocalHostName $SYSTEM_NAME
+  echo "› sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string $SYSTEM_NAME"
+  sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string $SYSTEM_NAME
+
+  #####
+  # General
+  #####
+
+  # Small sidebar icon size
+  defaults write NSGlobalDomain NSTableViewDefaultSizeMode -int 1
+
+  # Ask to keep changes when closing documents
+  defaults write NSGlobalDomain NSCloseAlwaysConfirmsChanges -int 1
+
+  # None Recent items
+  /usr/bin/osascript -e 'tell application "System Events" to tell appearance preferences to set recent applications limit to 0'
+  /usr/bin/osascript -e 'tell application "System Events" to tell appearance preferences to set recent documents limit to 0'
+  /usr/bin/osascript -e 'tell application "System Events" to tell appearance preferences to set recent servers limit to 0'
+
+  #####
+  # Desktop & Screen Saver
+  #####
+
+  # Hot corners - bottom right corner -> start screen saver
+  defaults write com.apple.dock wvous-br-corner -int 5
+  defaults write com.apple.dock wvous-br-modifier -int 0
+
+  #####
+  # Screenshots
+  #####
+
+  # Save screenshots to the desktop
+  defaults write com.apple.screencapture location -string "${HOME}/Desktop"
+
+  # Save screenshots in PNG format (other options: BMP, GIF, JPG, PDF, TIFF)
+  defaults write com.apple.screencapture type -string "png"
+
+  # Disable shadow in screenshots
+  defaults write com.apple.screencapture disable-shadow -bool true
+
+  # Enable subpixel font rendering on non-Apple LCDs
+  defaults write NSGlobalDomain AppleFontSmoothing -int 2
+
+  # Enable HiDPI display modes (requires restart)
+  sudo defaults write /Library/Preferences/com.apple.windowserver DisplayResolutionEnabled -bool true
+
+  #####
+  # Dock
+  #####
+
+  # Size 36 pixels
+  defaults write com.apple.dock tilesize -int 36
+
+  # Magnification
+  defaults write com.apple.dock magnification -int 1
+
+  # Large size 54 pixels
+  defaults write com.apple.dock largesize -int 54
+
+  # Minimize windows into application icon
+  defaults write com.apple.dock minimize-to-application -int 1
+
+  # Do not animate opening applications
+  defaults write com.apple.dock launchanim -int 0
+
+  # Automatically hide and show the Dock
+  defaults write com.apple.dock autohide -int 1
+
+  # Enable spring loading for all Dock items
+  defaults write com.apple.dock enable-spring-load-actions-on-all-items -bool true
+
+  # Show indicator lights for open applications in the Dock
+  defaults write com.apple.dock show-process-indicators -bool true
+
+  # Don’t automatically rearrange Spaces based on most recent use
+  defaults write com.apple.dock mru-spaces -bool false
+
+  # Enable the 2D Dock
+  defaults write com.apple.dock no-glass -bool true
+
+  # Make Dock icons of hidden applications translucent
+  defaults write com.apple.dock showhidden -bool true
+
+  #####
+  # Language & Region
+  #####
+
+  # Region US
+  defaults write NSGlobalDomain AppleLanguages -array "en"
+  defaults write NSGlobalDomain AppleLocale -string "en_US"
+  defaults write NSGlobalDomain AppleMeasurementUnits -string "Centimeters"
+  defaults write NSGlobalDomain AppleMetricUnits -int 1
+
+  #####
+  # Security & Privacy
+  #####
+
+  # Require password after sleep or screen saver begins
+  defaults write com.apple.screensaver askForPassword -int 1
+
+  # Ask for password immediately
+  defaults write com.apple.screensaver askForPasswordDelay -int 0
+
+  # Enable FileVault
+  sudo fdesetup enable || true
+
+  # Enable Firewall
+  sudo defaults write /Library/Preferences/com.apple.alf globalstate -int 1
+
+  #####
+  # Displays
+  #####
+
+  # Do not show mirroring options in the menu bar
+  defaults write com.apple.airplay showInMenuBarIfPresent -int 0
+
+  #####
+  # Energy Saver
+  #####
+
+  sudo pmset -c sleep 0
+  sudo pmset -c standbydelay 0
+  sudo pmset -c womp 0
+  sudo pmset -c disksleep 0
+  sudo pmset -c displaysleep 0
+  sudo pmset -c halfdim 0
+  sudo pmset -c darkwakes 0
+
+  #####
+  # Keyboard
+  #####
+
+  #Set a blazingly fast keyboard repeat rate
+  defaults write NSGlobalDomain KeyRepeat -int 2
+
+  #Set a shorter Delay until key repeat
+  defaults write NSGlobalDomain InitialKeyRepeat -int 15
+
+  # Do not correct spelling automatically
+  defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -int 0
+  defaults write NSGlobalDomain WebAutomaticSpellingCorrectionEnabled -int 0
+
+  # Full keyboard access for all controls
+  defaults write NSGlobalDomain AppleKeyboardUIMode -int 2
+
+  # FIXME Use US Extended input source
+  defaults write "com.apple.HIToolbox" AppleCurrentKeyboardLayoutInputSourceID -string "com.apple.keylayout.USExtended"
+
+  #####
+  # Trackpad
+  #####
+
+  # Tap to click for this user and for the login screen
+  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -int 1
+  defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+  defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+
+  # Three finger drag
+  defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag -int 1
+  defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerHorizSwipeGesture -int 0
+  defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerVertSwipeGesture -int 0
+
+  # App Exposé swipe down with four fingers
+  defaults write com.apple.dock showAppExposeGestureEnabled -int 1
+
+  # Trackpad: map bottom right corner to right-click
+  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadCornerSecondaryClick -int 2
+  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadRightClick -bool true
+  defaults -currentHost write NSGlobalDomain com.apple.trackpad.trackpadCornerClickBehavior -int 1
+  defaults -currentHost write NSGlobalDomain com.apple.trackpad.enableSecondaryClick -bool true
+
+  # Disable press-and-hold for keys in favor of key repeat
+  defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
+
+  # Automatically illuminate built-in MacBook keyboard in low light
+  defaults write com.apple.BezelServices kDim -bool true
+
+  # Turn off keyboard illumination when computer is not used for 5 minutes
+  defaults write com.apple.BezelServices kDimTime -int 300
+
+  #####
+  # Printers & Scanners
+  #####
+
+  # Default paper size A4
+  defaults write org.cups.PrintingPrefs DefaultPaperID -string "iso-a4"
+
+  #####
+  # Sound
+  #####
+
+  # Disable the sound effects on boot
+  sudo nvram SystemAudioVolume=%00
+
+  # Do not play user interface sound effects
+  defaults write "com.apple.systemsound" "com.apple.sound.uiaudio.enabled" -int 0
+
+  # Do not play feedback when volume is changed
+  defaults write NSGlobalDomain "com.apple.sound.beep.feedback" -int 0
+
+  #####
+  # Bluetooth
+  #####
+
+  sudo defaults write /Library/Preferences/com.apple.Bluetooth "ControllerPowerState" 0
+  sudo killall blued || true
+
+  #####
+  # Date
+  #####
+
+  # Time format 24-Hour Time
+  defaults write NSGlobalDomain AppleICUForce24HourTime -int 1
+
+  # Show Date
+  defaults write com.apple.menuextra.clock DateFormat "EEE MMM d  H:mm"
+
+  # Set the timezone, see `systemsetup -listtimezones` for other values
+  sudo systemsetup -settimezone "America/Montevideo" > /dev/null
+
+  #####
+  # Universal
+  #####
+
+  # Use scroll gesture with modifier keys to zoom
+  defaults write com.apple.AppleMultitouchTrackpad HIDScrollZoomModifierMask -int 262144
+  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad HIDScrollZoomModifierMask -int 262144
+
+  #####
+  # Hidden
+  #####
+
+  # Expand save panel by default
+  defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -int 1
+
+  # Expand print panel by default
+  defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -int 1
+
+  # Save to disk (not to iCloud) by default
+  defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -int 0
+
+  # Automatically quit printer app once the print jobs complete
+  defaults write com.apple.print.PrintingPrefs "Quit When Finished" -int 1
+
+  # Disable Resume system-wide
+  defaults write NSGlobalDomain NSQuitAlwaysKeepsWindows -int 0
+
+  # Disable automatic termination of inactive apps
+  defaults write NSGlobalDomain NSDisableAutomaticTermination -int 1
+
+  # Restart automatically if the computer freezes
+  sudo systemsetup -setrestartfreeze on
+
+  # Check for software updates daily, not just once per week
+  defaults write com.apple.SoftwareUpdate ScheduleFrequency -int 1
+
+  #####
+  # SSD
+  #####
+
+  # Disable the sudden motion sensor as it’s not useful for SSDs
+  sudo pmset -a sms 0
+
+  #####
+  # Finder
+  #####
+
+  # Finder: allow quitting via ⌘ + Q; doing so will also hide desktop icons
+  defaults write com.apple.finder QuitMenuItem -bool true
+
+  # Show icons for hard drives, servers, and removable media on the desktop
+  defaults write com.apple.finder ShowExternalHardDrivesOnDesktop -bool true
+  defaults write com.apple.finder ShowMountedServersOnDesktop -bool true
+  defaults write com.apple.finder ShowRemovableMediaOnDesktop -bool true
+
+  # Finder: show all filename extensions
+  defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+
+  # Finder: show status bar
+  defaults write com.apple.finder ShowStatusBar -bool true
+
+  # Finder: show path bar
+  defaults write com.apple.finder ShowPathbar -bool true
+
+  # Finder: allow text selection in Quick Look
+  defaults write com.apple.finder QLEnableTextSelection -bool true
+
+  # Display full POSIX path as Finder window title
+  defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
+
+  # When performing a search, search the current folder by default
+  defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
+
+  # Disable the warning when changing a file extension
+  defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
+
+  # Avoid creating .DS_Store files on network volumes
+  defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
+
+  # Automatically open a new Finder window when a volume is mounted
+  defaults write com.apple.frameworks.diskimages auto-open-ro-root -bool true
+  defaults write com.apple.frameworks.diskimages auto-open-rw-root -bool true
+  defaults write com.apple.finder OpenWindowForNewRemovableDisk -bool true
+
+  # Use list view in all Finder windows by default
+  # Four-letter codes for the other view modes: `icnv`, `clmv`, `Flwv`
+  defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+
+  # Disable the warning before emptying the Trash
+  defaults write com.apple.finder WarnOnEmptyTrash -bool false
+
+  # Enable AirDrop over Ethernet and on unsupported Macs running Lion
+  defaults write com.apple.NetworkBrowser BrowseAllInterfaces -bool true
+
+  # Show the ~/Library folder
+  chflags nohidden ~/Library
+
+  success 'Setting up macos'
+}
+
+setup_gitconfig () {
+  if ! [ -f git/gitconfig-personal.local.symlink ]
+  then
+    info 'setup gitconfig personal'
+
+    user ' - What is your github author name?'
+    read -e git_authorname
+    user ' - What is your github author email?'
+    read -e git_authoremail
+
+    sed -e "s/AUTHORNAME/$git_authorname/g" -e "s/AUTHOREMAIL/$git_authoremail/g" git/gitconfig-personal.local.symlink.example > git/gitconfig-personal.local.symlink
+
+    success 'gitconfig personal'
+  fi
+
+  if ! [ -f git/gitconfig-wyeworks.local.symlink ]
+  then
+    info 'setup gitconfig wyeworks'
+
+    user ' - What is your github author name?'
+    read -e git_authorname
+    user ' - What is your github author email?'
+    read -e git_authoremail
+
+    sed -e "s/AUTHORNAME/$git_authorname/g" -e "s/AUTHOREMAIL/$git_authoremail/g" git/gitconfig-wyeworks.local.symlink.example > git/gitconfig-wyeworks.local.symlink
+
+    success 'gitconfig wyeworks'
+  fi
+}
+
+
+link_file () {
+  local src=$1 dst=$2
+
+  local overwrite= backup= skip=
+  local action=
+
+  if [ -f "$dst" -o -d "$dst" -o -L "$dst" ]
+  then
+
+    if [ "$overwrite_all" == "false" ] && [ "$backup_all" == "false" ] && [ "$skip_all" == "false" ]
+    then
+
+      local currentSrc="$(readlink $dst)"
+
+      if [ "$currentSrc" == "$src" ]
+      then
+
+        skip=true;
+
+      else
+
+        user "File already exists: $dst ($(basename "$src")), what do you want to do?\n\
+        [s]kip, [S]kip all, [o]verwrite, [O]verwrite all, [b]ackup, [B]ackup all?"
+        read -n 1 action
+
+        case "$action" in
+          o )
+            overwrite=true;;
+          O )
+            overwrite_all=true;;
+          b )
+            backup=true;;
+          B )
+            backup_all=true;;
+          s )
+            skip=true;;
+          S )
+            skip_all=true;;
+          * )
+            ;;
+        esac
+
+      fi
+
+    fi
+
+    overwrite=${overwrite:-$overwrite_all}
+    backup=${backup:-$backup_all}
+    skip=${skip:-$skip_all}
+
+    if [ "$overwrite" == "true" ]
+    then
+      rm -rf "$dst"
+      success "removed $dst"
+    fi
+
+    if [ "$backup" == "true" ]
+    then
+      mv "$dst" "${dst}.backup"
+      success "moved $dst to ${dst}.backup"
+    fi
+
+    if [ "$skip" == "true" ]
+    then
+      success "skipped $src"
+    fi
+  fi
+
+  if [ "$skip" != "true" ]  # "false" or empty
+  then
+    ln -s "$1" "$2"
+    success "linked $1 to $2"
+  fi
+}
+
+install_dotfiles () {
+  info 'installing dotfiles'
+
+  local overwrite_all=false backup_all=false skip_all=false
+
+  for src in $(find -H "$MY_OSX_ROOT" -maxdepth 2 -name '*.symlink' -not -path '*.git*')
+  do
+    dst="$HOME/.$(basename "${src%.*}")"
+    link_file "$src" "$dst"
+  done
+}
+
+install_brew () {
+  info "installing brew"
+
+  # Install homebrew
+  $HOME/.my_osx/homebrew/install.sh 2>&1
+
+  # Upgrade homebrew
+  echo "› brew update"
+  brew update
+
+  success "brew installed"
+}
+
+setup_macos
+setup_gitconfig
+install_dotfiles
+install_brew
+
+echo ''
+echo '  All installed!'

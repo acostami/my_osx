@@ -1,0 +1,34 @@
+# Local/private config goes in the include
+[color]
+  diff = auto
+  branch = auto
+  status = auto
+  ui = auto
+[apply]
+  whitespace = nowarn
+[push]
+  default = simple
+[core]
+  editor = vim
+  excludesfile = ~/.gitignore
+[diff]
+  tool = vimdiff
+[difftool]
+  prompt = false
+[web]
+  browser = open
+[github]
+  user = acostami
+  token = github_token
+[filter "lfs"]
+  smudge = git-lfs smudge -- %f
+  process = git-lfs filter-process
+  required = true
+  clean = git-lfs clean -- %f
+[include]
+  path = ~/.gitconfig-personal.local
+[includeIf "gitdir:~/Documents/Projects/WyeWorks/"]
+  path = ~/.gitconfig-wyeworks.local
+[user]
+	name = Diego Acosta
+	email = acostami@gmail.com

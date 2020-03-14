@@ -1,0 +1,12 @@
+function aia_env() {
+	# Kill all ssh tunnels
+  pkill -f ssh
+  # Load all ENV vars to current session
+  export $(egrep -v '^#' .env.$1 | xargs)
+  # Open tunnels for the host we need them
+  ssh -f -i ~/.ssh/wyeworks -L $TUNNEL_ORIGIN_PORT_1:$TUNNEL_HOST_1:$TUNNEL_TARGET_PORT_1 ec2-user@$BASTION_HOST_IP -N
+  ssh -f -i ~/.ssh/wyeworks -L $TUNNEL_ORIGIN_PORT_2:$TUNNEL_HOST_2:$TUNNEL_TARGET_PORT_2 ec2-user@$BASTION_HOST_IP -N
+  ssh -f -i ~/.ssh/wyeworks -L $TUNNEL_ORIGIN_PORT_3:$TUNNEL_HOST_3:$TUNNEL_TARGET_PORT_3 ec2-user@$BASTION_HOST_IP -N
+  # Copy .env file for requested environment
+  cp .env.$1 .env
+}

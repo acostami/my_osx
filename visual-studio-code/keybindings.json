@@ -1,0 +1,11 @@
+// Place your key bindings in this file to overwrite the defaults
+[
+    {
+      "key": "shift+cmd+r",
+      "command": "workbench.files.action.showActiveFileInExplorer"
+    },
+    {
+      "key": "cmd+n",
+      "command": "explorer.newFile"
+    }
+  ]
