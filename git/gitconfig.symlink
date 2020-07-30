@@ -29,6 +29,5 @@
   path = ~/.gitconfig-personal.local
 [includeIf "gitdir:~/Documents/Projects/WyeWorks/"]
   path = ~/.gitconfig-wyeworks.local
-[user]
-	name = Diego Acosta
-	email = acostami@gmail.com
+[pull]
+	rebase = false
