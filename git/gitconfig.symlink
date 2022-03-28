@@ -31,3 +31,6 @@
   path = ~/.gitconfig-wyeworks.local
 [pull]
 	rebase = false
+[user]
+	name = Diego Acosta
+	email = acostami@gmail.com
