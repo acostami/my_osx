@@ -20,6 +20,7 @@ brew "gpg"
 brew "dockutil"
 brew "yarn"
 brew "bower"
+brew "unar"
 
 # Browsers
 cask "google-chrome"
@@ -51,4 +52,3 @@ cask "postico"
 cask "notion"
 cask "figma"
 cask "discord"
-cask "unar"
